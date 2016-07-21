@@ -105,6 +105,14 @@ angular.module('mainApp')
                   });
             }
          },
+         Itms: {
+            get: function(enrId) {
+               return get('Enrs/' + enrId + '/Itms');
+            },
+            post: function(enrId, itemId) {
+               return post('Enrs/' + enrId + '/Itms', { itemId: itemId });
+            }
+         }
       },
       Ssns: {
          get: typicalGet('Ssns'),

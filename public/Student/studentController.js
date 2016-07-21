@@ -15,14 +15,30 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
             scope.store = {};
 
             scope.enrollments.forEach(function(enrollment) {
-               API.Crss.Itms.get(enrollment.courseName)
+
+               API.Enrs.Itms.get(enrollment.enrId)
                   .then(function(response) {
-                     scope.store[enrollment.courseName] = {
-                        creditsEarned: enrollment.creditsEarned,
-                        items: response.data
-                     };
-                  })
-            })
+                     enrollment.items = response.data;
+
+                     API.Crss.Itms.get(enrollment.courseName)
+                        .then(function(response) {
+                           var data = response.data.filter(function(item) {
+                              for (var i in enrollment.items) {
+                                 if (enrollment.items[i].itemId === item.id) {
+                                    return false;
+                                 }
+                              }
+
+                              return true;
+                           });
+
+                           scope.store[enrollment.courseName] = {
+                              enrollment: enrollment,
+                              items: data
+                           };
+                        });
+                  });
+            });
          });
    };
 
@@ -34,7 +50,9 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
       return styles[2 - att.score] || "";
    };
 
-   scope.buyItem = function(itmId) {
-      console.log(itmId);
-   }
+   scope.buyItem = function(enrId, itemId) {
+      API.Enrs.Itms.post(enrId, itemId).then(function() { 
+         scope.refreshEnrs();
+      });
+   };
 }])

@@ -12,6 +12,12 @@
             <div class="clearfix"></div>
          </div>
          <div class="panel-body">
+            <div class="items">
+            Items:
+            <span class="badge" ng-repeat="item in enrollment.items">
+               {{ item.name }}
+            </span>
+            </div><br />
             <a href="#Enrs/{{ enrollment.enrId }}" class="btn btn-success" type="button">Go!</a>
          </div>
       </div>
@@ -23,13 +29,13 @@
       <div class="panel panel-default" ng-show="str.items.length" ng-repeat="(course, str) in store">
          <div class="panel-heading">
             <span class="badge pull-left">
-               {{ str.creditsEarned }}
+               {{ str.enrollment.creditsEarned }}
             </span>
             <h2 class="panel-title">{{ course }}</h2>
             <div class="clearfix"></div>
          </div>
          <div class="list-group-item" ng-repeat="item in str.items">
-            <button class="btn btn-small btn-primary pull-right" ng-click="buyItem(item.id)" ng-disabled="str.creditsEarned < item.cost">Buy ({{ item.cost }})</button>
+            <button class="btn btn-small btn-primary pull-right" ng-click="buyItem(str.enrollment.enrId, item.id)" ng-disabled="str.enrollment.creditsEarned < item.cost">Buy ({{ item.cost }})</button>
             {{ item.name }}
          </div>
       </div>

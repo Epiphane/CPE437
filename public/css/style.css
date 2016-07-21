@@ -19,6 +19,10 @@ a:hover {
   border: 1px solid #fff;
 }
 
+.badge {
+  margin-right: 5px;
+}
+
 
 /*
  * Base structure

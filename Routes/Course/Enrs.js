@@ -6,18 +6,25 @@ var router = Express.Router({caseSensitive: true});
 router.baseURL = '/Enrs';
 
 function handleError(res) {
-  return function(error) {
-    var code = error.code || 400;
-    delete error.code;
+   return function(error) {
+      console.log(error);
+      var code = error.code || 400;
+      delete error.code
 
-    res.status(code).json(error);
-};
+      res.status(code).json(error);
+   }
 }
 
 function sendResult(res, status) {
   return function(result) {
     res.status(status || 200).json(result);
-};
+  }
+}
+
+function releaseConn(conn) {
+   return function() {
+      conn.release();
+   }
 }
 
 router.get('/:enrId', function(req, res) {
@@ -105,5 +112,72 @@ router.delete('/:enrId', function(req, res) {
    }
 });
 
+router.get('/:enrId/Itms', function(req, res) {
+   var vld = req.validator;
+
+   connections.getConnectionP()
+      .then(function(conn) {
+         return conn.query('SELECT * FROM Enrollment WHERE enrId = ?', [req.params.enrId])
+            .then(function(enrollments) {
+               var enrollment = enrollments[0];
+
+               // Scope in Enrollment
+               return vld.check(!!enrollment, Tags.notFound)
+                  .then(function() {
+                     return vld.checkPrsOK(enrollment.prsId);
+                  })
+                  .then(function() {
+                     return conn.query('SELECT purch.purchaseid, purch.itemId, item.name, item.cost FROM StudentPurchase purch LEFT JOIN ShopItem item ON item.id = purch.itemId WHERE enrId = ?', [req.params.enrId]);
+                  })
+                  .then(sendResult(res))
+            })
+            .finally(releaseConn(conn));
+      })
+      .catch(handleError(res));
+});
+
+router.post('/:enrId/Itms', function(req, res) {
+   var vld = req.validator;
+
+   vld.hasFields(req.body, ["itemId"])
+      .then(function() {
+         return connections.getConnectionP();
+      })
+      .then(function(conn) {
+         return conn.query('SELECT * FROM Enrollment WHERE enrId = ?', [req.params.enrId])
+            .then(function(enrollments) {
+               var enrollment = enrollments[0];
+
+               // Scope in Enrollment
+               return vld.check(!!enrollment, Tags.notFound)
+                  .then(function() {
+                     return vld.checkPrsOK(enrollment.prsId);
+                  })
+                  .then(function() {
+                     return conn.query('SELECT * FROM ShopItem WHERE id = ?', [req.body.itemId]);
+                  })
+                  .then(function(items) {
+                     var item = items[0];
+
+                     // Scope in item
+                     return vld.check(!!item, Tags.notFound)
+                        .then(function() {
+                           return vld.check(enrollment.creditsEarned >= item.cost, 'tooPoor');
+                        })
+                        .then(function() {
+                           return conn.query('UPDATE Enrollment SET creditsEarned = creditsEarned - ? WHERE enrId = ?', [item.cost, enrollment.enrId]);
+                        })
+                        .then(function() {
+                           return conn.query('INSERT INTO StudentPurchase (enrId, itemid) VALUES (?, ?)', [enrollment.enrId, item.id]);
+                        })
+                        .then(function(result) {
+                           res.status(200).end();
+                        });
+                  });
+            })
+            .finally(releaseConn(conn));
+      })
+      .catch(handleError(res));
+});
 
 module.exports = router;
