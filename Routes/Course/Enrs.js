@@ -106,4 +106,30 @@ router.delete('/:enrId', function(req, res) {
 });
 
 
+router.get('/:enrId/Atts', function(req, res) {
+   var vld = req._validator;
+   var challengeName = req.query.challengeName;
+   var admin = req.session && req.session.isAdmin();
+
+   query = 'SELECT * from Attempt join Enrollment where prsId = ownerId && enrId = ?';
+   params = [req.params.enrId];
+   if (challengeName) {
+      query += ' and challengeName = ?';
+      params.push(challengeName);
+   }
+   query += ' ORDER BY startTime ASC';
+
+   connections.getConnection(res,
+   function(cnn) {
+      cnn.query(query, params,
+      function(err, result) {
+         if (vld.check(result.length, Tags.notFound) && vld.check(result[0].prsId === req.session.id || admin, Tags.noPermission)) {
+            res.json(result);
+         }
+         cnn.release();
+      });
+   });
+
+});
+
 module.exports = router;
