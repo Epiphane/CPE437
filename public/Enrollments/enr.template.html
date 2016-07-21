@@ -1,7 +1,19 @@
 <div class="container-white row">
+
    <div class="col-sm-7">
       <h2>My Challenges</h2>
       <hr />
+
+      <div class="panel panel-info" ng-repeat="challenge in challenges | filter:notInProgress">
+         <div class="panel-heading">
+            <h3 class="panel-title">{{ challenge.name }}</h3>
+            <div class="clearfix"></div>
+         </div>
+         <div class="panel-body">
+            <a href="#Chls/{{ challenge.name }}" class="btn btn-success pull-right" type="button">Go!</a>
+            {{ challenge.description }}
+         </div>
+      </div>
 
       <div class="panel panel-default panel-{{ getAttColor(attempts[0]) }}" ng-repeat="(challengeName, attempts) in grouped">
          <div class="panel-heading">
@@ -31,24 +43,37 @@
       </div>
    </div>
    <div class="col-sm-5">
-      <h2>Open</h2>
-      <hr />
 
-      <div class="panel panel-default" ng-repeat="challenge in challenges | filter:notInProgress">
-         <div class="panel-heading">
-            <a href="#Chls/{{ challenge.name }}" class="btn btn-success pull-right" type="button">Go!</a>
-            <h3 class="panel-title">{{ challenge.name }}</h3>
-            <div class="clearfix"></div>
-         </div>
-         <div class="panel-body">
-            {{ challenge.description }}
+         <h2>Items</h2>
+         <p class="text-center">{{ enrollment.creditsEarned }} Credits</p>
+         <span class="badge" ng-repeat="item in items">
+            {{ item.name }}
+         </span>
+
+         <hr />
+      <div ng-show="store.length === 0">
+         <h4>
+            You bought everything!
+         </h4>
+         <h1>
+            <i class="fa fa-hand-peace-o"></i>
+         </h1>
+      </div>
+
+      <div ng-show="store.length > 0">
+         <div class="panel panel-primary" ng-repeat="item in store">
+            <div class="panel-heading">
+               <span class="badge pull-left">
+                  {{ enrollment.creditsEarned }}
+               </span>
+               <h1 class="panel-title">Store</h1>
+               <div class="clearfix"></div>
+            </div>
+            <div class="list-group-item" ng-repeat="item in store">
+               <button class="btn btn-small btn-primary pull-right" ng-click="buyItem(enrollment.enrId, item.id)" ng-disabled="enrollment.creditsEarned < item.cost">Buy ({{ item.cost }})</button>
+               {{ item.name }}
+            </div>
          </div>
       </div>
-      <h4 ng-hide="(challenges | filter:notInProgress).length > 0">
-         Nothing!
-         </h4>
-      <h1>
-         <i class="fa fa-hand-peace-o" ng-hide="(challenges | filter:notInProgress).length > 0"></i>
-      </h1>
    </div>
 </div>

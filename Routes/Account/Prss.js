@@ -328,7 +328,10 @@ router.post('/:id/Atts', function(req, res) {
                                  });
 
                                  creditsEarned -= max;
+
                               }
+
+                              if (creditsEarned < 0) creditsEarned = 0;
 
                               // Time bonus
                               var closeTime = new Date(chl.openTime);
