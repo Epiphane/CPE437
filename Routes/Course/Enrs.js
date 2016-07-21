@@ -127,7 +127,7 @@ router.get('/:enrId/Itms', function(req, res) {
                      return vld.checkPrsOK(enrollment.prsId);
                   })
                   .then(function() {
-                     return conn.query('SELECT purch.purchaseid, purch.itemId, item.name, item.cost FROM StudentPurchase purch LEFT JOIN ShopItem item ON item.id = purch.itemId WHERE enrId = ?', [req.params.enrId]);
+                     return conn.query('SELECT purch.purchaseid, purch.itemId, item.name, item.cost FROM StudentPurchase purch LEFT JOIN ShopItem item ON item.id = purch.itemId WHERE item.enrId = ?', [req.params.enrId]);
                   })
                   .then(sendResult(res))
             })
