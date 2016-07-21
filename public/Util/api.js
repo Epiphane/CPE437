@@ -78,7 +78,33 @@ angular.module('mainApp')
             get: function(prsId) {
                return get('Chls?prsId=' + prsId);
             }
+         },
+         Enrs: {
+            get: function(prsId, enrId) {
+               enrId = enrId || '';
+               return get('Prss/' + prsId + '/Enrs/' + enrId);
+            },
          }
+      },
+      Enrs: {
+         get: typicalGet('Enrs'),
+         Chls: {
+            get: function(enrId) {
+               return get('Chls?enrId=' + enrId);
+            }
+         },
+         Atts: {
+            get: function(enrId, challengeName) {
+               return get('Enrs/' + enrId + '/Atts' + (challengeName ? '?challengeName=' + challengeName : ''))
+                  .then(function(response) {
+                     response.data = response.data.map(function(att) {
+                        att.startTime = new Date(att.startTime);
+                        return att;
+                     });
+                     return response;
+                  });
+            }
+         },
       },
       Ssns: {
          get: typicalGet('Ssns'),

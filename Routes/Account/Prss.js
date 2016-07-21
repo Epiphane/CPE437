@@ -23,6 +23,12 @@ function sendResult(res, status) {
   }
 }
 
+function releaseConn(conn) {
+   return function() {
+      conn.release();
+   }
+}
+
 router.get('/', function(req, res) {
    var specifier = req.query.email || !req.session.isAdmin() && req.session.email;
 
@@ -177,6 +183,25 @@ router.delete('/:id', function(req, res) {
             cnn.release();
          });
       });
+});
+
+router.get('/:id/Enrs', function(req, res) {
+   var query, qryParams;
+
+   req.validator.checkPrsOK(req.params.id)
+      .then(function() {
+         return connections.getConnectionP();
+      })
+      .then(function(conn) {
+
+         query = 'SELECT * from Enrollment where prsId = ?';
+         params = [req.params.id];
+
+         return conn.query(query, params)
+            .then(sendResult(res))
+            .catch(handleError(res))
+            .finally(releaseConn(conn));
+      })
 });
 
 router.get('/:id/Crss', function(req, res) {
