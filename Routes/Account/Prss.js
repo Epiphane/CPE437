@@ -270,51 +270,86 @@ router.post('/:id/Atts', function(req, res) {
                                     'ownerId = ? AND challengeName = ?',
                                     [owner, chlName]);
                })
-               .then(function(result) {
-                  return vld.check(result.length < chl.attsAllowed, Tags.excessAtts);
-               })
-               .then(function() {
-                  req.body.ownerId = owner;
-                  req.body.startTime = Time();
+               .then(function(existing) {
+                  return vld.check(existing.length < chl.attsAllowed, Tags.excessAtts)
+                     .then(function() {
+                        req.body.ownerId = owner;
+                        req.body.startTime = Time();
 
-                  // Score the attempt
-                  var input = req.body.input.toLowerCase();
-                  var answer = chl.answer.toLowerCase();
+                        // Score the attempt
+                        var input = req.body.input.toLowerCase();
+                        var answer = chl.answer.toLowerCase();
 
-                  req.body.score = 0;
-                  if (chl.type === 'number') {
-                     input = parseInt(input);
-                     answer = parseInt(answer);
-                     if (!Number.isNaN(input)) {
-                        req.body.score ++;
+                        req.body.score = 0;
+                        if (chl.type === 'number') {
+                           input = parseInt(input);
+                           answer = parseInt(answer);
+                           if (!Number.isNaN(input)) {
+                              req.body.score ++;
 
-                        if (Math.abs(input - answer) < 0.01) {
-                           req.body.score ++;
+                              if (Math.abs(input - answer) < 0.01) {
+                                 req.body.score ++;
+                              }
+                           }
                         }
-                     }
-                  }
-                  else if (chl.type === 'term') {
-                     answer = JSON.parse(answer);
-                     var exact =  answer.exact;
-                     var inexact = answer.inexact;
+                        else if (chl.type === 'term') {
+                           answer = JSON.parse(answer);
+                           var exact =  answer.exact;
+                           var inexact = answer.inexact;
 
-                     if (exact.indexOf(input) >= 0) {
-                        req.body.score = 2;
-                     }
-                     else if (inexact.indexOf(input) >= 0) {
-                        req.body.score = 1;
-                     }
-                  }
+                           if (exact.indexOf(input) >= 0) {
+                              req.body.score = 2;
+                           }
+                           else if (inexact.indexOf(input) >= 0) {
+                              req.body.score = 1;
+                           }
+                        }
 
-                  return conn.query('INSERT INTO Attempt SET ?', req.body);
-               })
-               .then(function(result) {
-                  res.location(router.baseURL + '/' + owner + '/Atts/'
-                     + result.insertId).end();
-               })
-               .catch(handleError(res))
-               .finally(function() {
-                  conn.release();
+                        return conn.query('SELECT * FROM Enrollment WHERE courseName = ? AND prsId = ?', [chl.courseName, owner]);
+                     })
+                     .then(function(enrollments) {
+
+                        return vld.check(enrollments.length, 'notEnrolled')
+                           .then(function() {
+                              var enr = enrollments[0];
+
+                              // How many credits to give?
+                              var creditsEarned = req.body.score;
+                              if (existing.length === 0) {
+                                 // First try!
+                                 creditsEarned ++;
+                              }
+                              else {
+                                 var max = 0;
+                                 existing.forEach(function(att) {
+                                    if (att.score > max) {
+                                       max = att.score;
+                                    }
+                                 });
+
+                                 creditsEarned -= max;
+                              }
+
+                              // Time bonus
+                              var closeTime = new Date(chl.openTime);
+                              closeTime.setDate(closeTime.getDate() + 1);
+                              if (creditsEarned && req.body.startTime < closeTime) {
+                                 creditsEarned += 2;
+                              }
+
+                              return conn.query('UPDATE Enrollment SET creditsEarned = creditsEarned + ' + creditsEarned + ' WHERE enrId = ?', [enr.enrId]);
+                           });
+                     })
+                     .then(function() {
+                        // Do the insertion
+                        return conn.query('INSERT INTO Attempt SET ?', req.body);
+                     })
+                     .then(function(result) {
+                        res.location(router.baseURL + '/' + owner + '/Atts/'
+                           + result.insertId).end();
+                     })
+                     .catch(handleError(res))
+                     .finally(releaseConn(conn));
                });
          });
    })
