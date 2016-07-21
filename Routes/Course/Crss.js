@@ -184,11 +184,7 @@ router.get('/:name/Enrs', function(req, res) {
          }
          else {
             cnn.query('SELECT ownerId FROM Course WHERE name = ?', [req.params.name], function(err, result) {
-               if (vld.check(result && result[0].ownerId === prs.id, Tags.noPermission)) {
-                  getResult();
-               }
-               else
-                  cnn.release();
+               getResult();
             });
          }
       });
