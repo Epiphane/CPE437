@@ -185,7 +185,7 @@ router.get('/:enrId/Atts', function(req, res) {
    var challengeName = req.query.challengeName;
    var admin = req.session && req.session.isAdmin();
 
-   query = 'SELECT * from Attempt att LEFT JOIN Challenge chl ON att.challengeName = chl.name LEFT JOIN Enrollment enr on enr.courseName = chl.courseName where enrId = ?';
+   query = 'SELECT * from Attempt att LEFT JOIN Challenge chl ON att.challengeName = chl.name LEFT JOIN Enrollment enr on enr.courseName = chl.courseName AND enr.prsId = ownerId where enrId = ?';
    params = [req.params.enrId];
    if (challengeName) {
       query += ' and challengeName = ?';

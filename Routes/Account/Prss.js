@@ -202,6 +202,7 @@ router.get('/:id/Enrs', function(req, res) {
             .catch(handleError(res))
             .finally(releaseConn(conn));
       })
+      .catch(handleError(res));
 });
 
 router.get('/:id/Crss', function(req, res) {
