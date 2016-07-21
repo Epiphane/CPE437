@@ -3,7 +3,7 @@ app.controller('crsController',
  function(scope, $state, $stateParams, API, confirm, login) {
    scope.courseName = $stateParams.courseName;
 
-   scope.challenge = { 
+   scope.challenge = {
       courseName: scope.courseName,
       attsAllowed: 5,
       openTime: new Date()
@@ -30,6 +30,35 @@ app.controller('crsController',
    };
 
    scope.refreshChls();
+
+   scope.refreshItms = function() {
+      return API.Crss.Itms.get(scope.courseName)
+         .then(function(response) {
+            scope.itms = response.data;
+         });
+   };
+
+   scope.makingItm = false;
+   scope.newItm = {};
+
+    scope.createItm = function() {
+      scope.makingItm = false;
+       API.Crss.Itms.post(scope.courseName, scope.newItm)
+          .then(scope.refreshItms)
+          .catch(function(err) {
+            scope.shopErrors = ["There's already an item named " + scope.newItm.name];
+          });
+    }
+
+    scope.deleteItm = function(itmId) {
+      API.Crss.Itms.delete(scope.courseName, itmId)
+      .then(scope.refreshItms)
+      .catch(function(err) {
+          scope.shopErrors = ["Error deleting item"];
+      });
+    }
+
+   scope.refreshItms();
 
    scope.isOpen = function(chl) {
       return chl.openTime <= new Date();

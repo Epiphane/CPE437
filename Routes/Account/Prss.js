@@ -8,13 +8,12 @@ var Time = require('../MockTime.js');
 router.baseURL = '/Prss';
 
 function handleError(res) {
-   return function(error) {
-      console.log(error);
-      var code = error.code || 400;
-      delete error.code
+  return function(error) {
+    var code = error.code || 400;
+    delete error.code
 
-      res.status(code).json(error);
-   }
+    res.status(code).json(error);
+  }
 }
 
 function sendResult(res, status) {
@@ -221,15 +220,14 @@ router.get('/:id/Atts', function(req, res) {
 
 router.post('/:id/Atts', function(req, res) {
    var vld = req.validator;
-   var chlName = req.body.challengeName;
    var owner = req.params.id;
 
    return vld.checkPrsOK(owner)
    .then(function() {
-      return vld.hasFields(req.body, ['challengeName', 'input']);
+     return vld.hasFields(req.body, ['input']);
    })
    .then(function() {
-      return connections.getConnectionP();
+     return connections.getConnectionP();
    })
    .then(function(conn) {
       // Verify specified challenge exists
@@ -261,7 +259,7 @@ router.post('/:id/Atts', function(req, res) {
                      answer = parseInt(answer);
                      if (!Number.isNaN(input)) {
                         req.body.score ++;
-                     
+
                         if (Math.abs(input - answer) < 0.01) {
                            req.body.score ++;
                         }

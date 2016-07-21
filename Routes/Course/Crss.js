@@ -342,7 +342,7 @@ router.get('/:crsName/Itms', function(req, res) {
                   }
                }
                if (vld.check(enrolled || owner || admin, Tags.noPermission)) {
-                  cnn.query('Select name, cost, purchased from ShopItem where courseName = ?', req.params.crsName,
+                  cnn.query('Select name, cost, id from ShopItem where courseName = ?', req.params.crsName,
                   function(err, result) {
                      res.json(result);
                      cnn.release();
@@ -362,7 +362,7 @@ router.post('/:crsName/Itms', function(req, res) {
    if (vld.hasFields(req.body, ["name", "cost"])) {
       connections.getConnection(res, function(cnn) {
          cnn.query('Select name from ShopItem where name = ?', req.body.name,
-         function(result) {
+         function(err, result) {
             if (vld.check(!result.length, Tags.dupName)) {
                cnn.query('Insert into ShopItem (name, courseName, cost) value (?, ?, ?)',
                [req.body.name, req.params.crsName, req.body.cost],
