@@ -85,7 +85,7 @@ router.post('/', function(req, res) {
 
 router.get('/:name', function(req, res) {
    connections.getConnection(res, function(cnn) {
-      cnn.query('SELECT name, description, attsAllowed, openTime from Challenge where name = ?', req.params.name, function(err, result) {
+      cnn.query('SELECT name, description, attsAllowed, openTime, courseName from Challenge where name = ?', req.params.name, function(err, result) {
          if (result.length === 1) {
             res.json(result[0]);
          }

@@ -168,7 +168,12 @@ router.get('/:name/Enrs', function(req, res) {
                queryArr[0] += ', lastName, firstName, email';
                queryArr[1] += ' INNER JOIN Person p ON p.id = prsId'
             }
-            cnn.query(queryArr.join(' '), [req.params.name], function(err, result) {
+            var params = [req.params.name];
+            if (req.query.prsId) {
+               queryArr.push('AND prsId = ?');
+               params.push(req.query.prsId);
+            }
+            cnn.query(queryArr.join(' '), params, function(err, result) {
                res.json(result);
                cnn.release();
             });

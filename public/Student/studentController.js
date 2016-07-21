@@ -2,6 +2,8 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
  function(scope, $state, API, confirm, login, $rootScope) {
    $rootScope.page = 'student';
 
+   scope.store = {};
+
    if (!login.isLoggedIn()) {
       $state.go('home');
    }
@@ -10,6 +12,17 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
       API.Prss.Enrs.get(scope.loggedUser.id)
          .then(function(response) {
             scope.enrollments = response.data;
+            scope.store = {};
+
+            scope.enrollments.forEach(function(enrollment) {
+               API.Crss.Itms.get(enrollment.courseName)
+                  .then(function(response) {
+                     scope.store[enrollment.courseName] = {
+                        creditsEarned: enrollment.creditsEarned,
+                        items: response.data
+                     };
+                  })
+            })
          });
    };
 
@@ -20,4 +33,8 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
 
       return styles[2 - att.score] || "";
    };
+
+   scope.buyItem = function(itmId) {
+      console.log(itmId);
+   }
 }])
