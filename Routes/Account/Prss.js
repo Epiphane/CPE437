@@ -9,6 +9,7 @@ router.baseURL = '/Prss';
 
 function handleError(res) {
   return function(error) {
+    console.log(error);
     var code = error.code || 400;
     delete error.code
 
@@ -200,7 +201,7 @@ router.get('/:id/Atts', function(req, res) {
    var query, qryParams;
 
    if (req._validator.checkPrsOK(req.params.id))
-      query = 'SELECT * from Attempt where ownerId = ?';
+      query = 'SELECT * from Attempt where ownerId = ? ORDER BY startTime ASC';
       params = [req.params.id];
       if (req.query.challengeName) {
          query += ' and challengeName = ?';
@@ -230,6 +231,8 @@ router.post('/:id/Atts', function(req, res) {
      return connections.getConnectionP();
    })
    .then(function(conn) {
+      var chlName = req.body.challengeName;
+
       // Verify specified challenge exists
       return conn.query('SELECT * FROM Challenge WHERE name = ?', [chlName])
          .then(function(result) {

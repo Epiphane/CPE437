@@ -1,71 +1,92 @@
-app.controller('adminController',
-['$scope', '$state', 'api', 'login', '$rootScope', '$timeout',
- function(scope, $state, API, login, $rootScope, $timeout) {
-   $rootScope.page = 'admin';
+// Mess with the time
+(function() {
+   var timeOffset = 0;
+   window.Now = function() {
+      var now = new Date();
 
-   if (!login.isLoggedIn()) {
-      $state.go('home');
-   }
+      now.setTime(now.getTime() + timeOffset);
 
-   scope.offsets = {
-      ms: 0,
-      sec: 0,
-      min: 0,
-      hr: 0,
-      day: 0,
-      month: 0,
-      year: 0
+      return now;
    };
 
-   scope.getTime = function() {
-      var fakeDate = new Date();
+   app.controller('adminController',
+   ['$scope', '$state', 'api', 'login', '$rootScope', '$timeout',
+    function(scope, $state, API, login, $rootScope, $timeout) {
+      $rootScope.page = 'admin';
 
-      fakeDate.setFullYear(fakeDate.getFullYear() + scope.offsets.year);
-      fakeDate.setMonth(fakeDate.getMonth() + scope.offsets.month);
-      fakeDate.setDate(fakeDate.getDate() + scope.offsets.day);
-      fakeDate.setHours(fakeDate.getHours() + scope.offsets.hr);
-      fakeDate.setMinutes(fakeDate.getMinutes() + scope.offsets.min);
-      fakeDate.setSeconds(fakeDate.getSeconds() + scope.offsets.sec);
-      fakeDate.setMilliseconds(fakeDate.getMilliseconds() + scope.offsets.ms);
+      if (!login.isLoggedIn()) {
+         $state.go('home');
+      }
 
-      return fakeDate;
-   };
+      scope.offsets = {
+         ms: 0,
+         sec: 0,
+         min: 0,
+         hr: 0,
+         day: 0,
+         month: 0,
+         year: 0
+      };
 
-   scope.setOffset = function(offset) {
-      var fakeDate = new Date();
-      fakeDate.setTime(fakeDate.getTime() + offset);
+      scope.getTime = function() {
+         var fakeDate = new Date();
 
-      var realDate = new Date();
+         fakeDate.setFullYear(fakeDate.getFullYear() + scope.offsets.year);
+         fakeDate.setMonth(fakeDate.getMonth() + scope.offsets.month);
+         fakeDate.setDate(fakeDate.getDate() + scope.offsets.day);
+         fakeDate.setHours(fakeDate.getHours() + scope.offsets.hr);
+         fakeDate.setMinutes(fakeDate.getMinutes() + scope.offsets.min);
+         fakeDate.setSeconds(fakeDate.getSeconds() + scope.offsets.sec);
+         fakeDate.setMilliseconds(fakeDate.getMilliseconds() + scope.offsets.ms);
 
-      scope.offsets.year  = fakeDate.getFullYear() - realDate.getFullYear();
-      scope.offsets.month = fakeDate.getMonth() - realDate.getMonth();
-      scope.offsets.day   = fakeDate.getDate() - realDate.getDate();
-      scope.offsets.hr    = fakeDate.getHours() - realDate.getHours();
-      scope.offsets.min   = fakeDate.getMinutes() - realDate.getMinutes();
-      scope.offsets.sec   = fakeDate.getSeconds() - realDate.getSeconds();
-      scope.offsets.ms    = fakeDate.getMilliseconds() - realDate.getMilliseconds();
-   }
+         return fakeDate;
+      };
 
-   scope.update = function() {
-      API.Time.get().then(function(response) {
-         var info = response.data;
+      scope.setOffset = function(offset) {
+         var fakeDate = new Date();
+         fakeDate.setTime(fakeDate.getTime() + offset);
 
-         scope.setOffset(info.offset);
-         tick();
-      });
-   }
+         var realDate = new Date();
 
-   scope.update();
+         scope.offsets.year  = fakeDate.getFullYear() - realDate.getFullYear();
+         scope.offsets.month = fakeDate.getMonth() - realDate.getMonth();
+         scope.offsets.day   = fakeDate.getDate() - realDate.getDate();
+         scope.offsets.hr    = fakeDate.getHours() - realDate.getHours();
+         scope.offsets.min   = fakeDate.getMinutes() - realDate.getMinutes();
+         scope.offsets.sec   = fakeDate.getSeconds() - realDate.getSeconds();
+         scope.offsets.ms    = fakeDate.getMilliseconds() - realDate.getMilliseconds();
+      }
 
-   function tick() {
-      scope.time = scope.getTime();
-      $timeout(tick, 1000);
-   }
+      scope.update = function() {
+         API.Time.get().then(function(response) {
+            var info = response.data;
 
-   scope.saveTime = function() {
-      API.Time.put(scope.getTime())
-         .then(function() {
-            scope.update();
-         })
-   }
-}])
+            scope.setOffset(info.offset);
+            tick();
+         });
+      }
+
+      scope.update();
+
+      function tick() {
+         scope.time = scope.getTime();
+         $timeout(tick, 1000);
+      }
+
+      scope.saveTime = function() {
+         timeOffset = scope.getTime().getTime() - (new Date()).getTime();
+         API.Time.put(scope.getTime())
+            .then(function() {
+               scope.update();
+            })
+      }
+   }])
+   .service('time', ['api', function(API) {
+      API.Time.get().
+         then(function(response) {
+            var info = response.data;
+
+            timeOffset = info.offset;
+         });
+   }]);
+})();
