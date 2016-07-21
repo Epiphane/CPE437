@@ -17,10 +17,17 @@ app.controller('chlController',
          scope.challenge = response.data;
       });
 
+
    scope.createAttempt = function() {
       API.Prss.Atts.post(scope.loggedUser.id, scope.attempt)
          .then(function() {
-            $state.go('student');
+            return API.Crss.Enrs.find(scope.challenge.courseName, scope.loggedUser.id);
+         })
+         .then(function(response) {
+            if (response.data.length)
+               $state.go('enr', { enrId: response.data[0].enrId});
+            else
+               $state.go('student');
          });
    }
 }])

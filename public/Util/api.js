@@ -124,6 +124,9 @@ angular.module('mainApp')
                enrId = enrId || '';
                return get('Crss/' + courseName + '/Enrs/' + enrId + '?full=true');
             },
+            find: function(courseName, prsId) {
+               return get('Crss/' + courseName + '/Enrs?prsId=' + prsId);
+            },
             delete: function(courseName, enrId) {
                return del('Crss/' + courseName + '/Enrs/' + enrId);
             },

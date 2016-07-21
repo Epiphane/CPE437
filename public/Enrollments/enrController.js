@@ -2,6 +2,8 @@ app.controller('enrController', ['$scope', '$state', '$stateParams', 'api', 'con
  function(scope, $state, $stateParams, API, confirm, login, $rootScope) {
    $rootScope.page = 'student';
 
+   scope.enrId = $stateParams.enrId;
+
    scope.inProgressChallenges = [];
    scope.challenges = [];
    scope.mappedChallenges = {};
@@ -16,7 +18,7 @@ app.controller('enrController', ['$scope', '$state', '$stateParams', 'api', 'con
    };
 
    scope.refreshAtts = function() {
-      API.Enrs.Chls.get(scope.loggedUser.id).then(function(response) {
+      API.Enrs.Chls.get(scope.enrId).then(function(response) {
          scope.challenges = response.data;
 
          scope.challenges.forEach(function(challenge) {
@@ -24,7 +26,7 @@ app.controller('enrController', ['$scope', '$state', '$stateParams', 'api', 'con
          })
       });
 
-      return API.Enrs.Atts.get(scope.loggedUser.id)
+      return API.Enrs.Atts.get(scope.enrId)
          .then(function(response) {
             scope.grouped = {};
 

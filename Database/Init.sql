@@ -56,17 +56,6 @@ create table ShopItem (
     on delete cascade
 );
 
-create table StudentPurchase (
-  purchaseId INT(11) AUTO_INCREMENT PRIMARY KEY,
-  prsId INT(11) NOT NULL,
-  itemId INT(11) NOT NULL,
-  UNIQUE KEY (prsId, itemId),
-  Constraint FKPurchaseStudentId Foreign key(prsId) references Person(id)
-  on delete cascade,
-  Constraint FKPurchaseItem Foreign key(itemId) references ShopItem(id)
-  on delete cascade
-);
-
 create table Enrollment (
     enrId INT(11) AUTO_INCREMENT PRIMARY KEY,
     prsId INT(11) NOT NULL,
@@ -78,6 +67,17 @@ create table Enrollment (
     on delete cascade,
     Constraint FKEnrollmentCourse Foreign key(courseName) references Course(name)
     on delete cascade
+);
+
+create table StudentPurchase (
+  purchaseId INT(11) AUTO_INCREMENT PRIMARY KEY,
+  enrId INT(11) NOT NULL,
+  itemId INT(11) NOT NULL,
+  UNIQUE KEY (enrId, itemId),
+  Constraint FKPurchaseStudentId Foreign key(enrId) references Enrollment(enrId)
+  on delete cascade,
+  Constraint FKPurchaseItem Foreign key(itemId) references ShopItem(id)
+  on delete cascade
 );
 
 INSERT INTO Person (
