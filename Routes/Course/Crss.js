@@ -115,7 +115,7 @@ router.post('/:name/Enrs', function(req, res) {
    connections.getConnection(res, function(cnn) {
       function doEnroll() {
          cnn.query('INSERT INTO Enrollment (prsId, courseName, whenEnrolled) VALUES (?, ?, ?)',
-            [req.body.prsId, req.params.name, Time()()], function(err, result) {
+            [req.body.prsId, req.params.name, Time()], function(err, result) {
             if (err) {
                if (vld.check(err.code !== 'ER_DUP_ENTRY', Tags.dupName)) {
                   console.log(err);

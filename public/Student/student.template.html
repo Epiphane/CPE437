@@ -44,7 +44,7 @@
             {{ challenge.description }}
          </div>
       </div>
-      <h4>
+      <h4 ng-hide="(challenges | filter:notInProgress).length > 0">
          Nothing!
          </h4>
       <h1>

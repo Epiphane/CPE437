@@ -16,6 +16,14 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
    };
 
    scope.refreshAtts = function() {
+      API.Prss.Chls.get(scope.loggedUser.id).then(function(response) {
+         scope.challenges = response.data;
+
+         scope.challenges.forEach(function(challenge) {
+            scope.mappedChallenges[challenge.name] = challenge;
+         })
+      });
+
       return API.Prss.Atts.get(scope.loggedUser.id)
          .then(function(response) {
             scope.grouped = {};
@@ -57,14 +65,6 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
 
       return styles[2 - att.score] || "";
    };
-
-   API.Prss.Chls.get(scope.loggedUser.id).then(function(response) {
-      scope.challenges = response.data;
-
-      scope.challenges.forEach(function(challenge) {
-         scope.mappedChallenges[challenge.name] = challenge;
-      })
-   });
 
    scope.refreshAtts();
 }])

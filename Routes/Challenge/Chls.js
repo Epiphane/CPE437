@@ -36,9 +36,11 @@ router.get('/', function(req, res) {
          var query = [
             'SELECT name, description, attsAllowed, openTime, prsId from Challenge chl',
             'LEFT JOIN Enrollment enr ON enr.courseName = chl.courseName',
-            'WHERE openTime <= NOW() AND prsId = ?'
+            'WHERE openTime <= ? AND prsId = ?'
          ];
-         var params = [req.query.prsId];
+         var params = [Time(), req.query.prsId];
+
+         console.log(query.join(' '), params);
 
          conn.query(query.join(' '), params)
             .then(sendResult(res))

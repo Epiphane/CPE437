@@ -12,7 +12,6 @@ app.controller('crsController',
    // heheheh
    setTimeout(function() {
       scope.challenge.openTime = Now();
-      console.log(scope.challenge.openTime);
    }, 500);
 
    if (!login.isLoggedIn()) {
@@ -67,7 +66,7 @@ app.controller('crsController',
    scope.refreshItms();
 
    scope.isOpen = function(chl) {
-      return chl.openTime <= new Date();
+      return chl.openTime <= Now();
    }
 
    scope.addEnrollment = function() {
