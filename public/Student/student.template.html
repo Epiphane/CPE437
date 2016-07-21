@@ -12,7 +12,7 @@
             <div class="clearfix"></div>
          </div>
          <div class="panel-body">
-            <div class="items">
+            <div class="items" ng-show="enrollment.items.length">
             Items:
             <span class="badge" ng-repeat="item in enrollment.items">
                {{ item.name }}

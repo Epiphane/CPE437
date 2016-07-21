@@ -185,7 +185,7 @@ router.get('/:enrId/Atts', function(req, res) {
    var challengeName = req.query.challengeName;
    var admin = req.session && req.session.isAdmin();
 
-   query = 'SELECT * from Attempt join Enrollment where prsId = ownerId && enrId = ?';
+   query = 'SELECT * from Attempt att LEFT JOIN Challenge chl ON att.challengeName = chl.name LEFT JOIN Enrollment enr on enr.courseName = chl.courseName where enrId = ?';
    params = [req.params.enrId];
    if (challengeName) {
       query += ' and challengeName = ?';
@@ -197,9 +197,7 @@ router.get('/:enrId/Atts', function(req, res) {
    function(cnn) {
       cnn.query(query, params,
       function(err, result) {
-         if (vld.check(result.length, Tags.notFound) && vld.check(result[0].prsId === req.session.id || admin, Tags.noPermission)) {
-            res.json(result);
-         }
+         res.json(result);
          cnn.release();
       });
    });
