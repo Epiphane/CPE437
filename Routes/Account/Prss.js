@@ -3,6 +3,7 @@ var connections = require('../Connections.js');
 var Tags = require('../Validator.js').Tags;
 var router = Express.Router({caseSensitive: true});
 var PromiseUtil = require('../PromiseUtil.js');
+var Time = require('../MockTime.js');
 
 router.baseURL = '/Prss';
 
@@ -46,7 +47,7 @@ router.post('/', function(req, res) {
 
    if (admin && !body.password)
       body.password = "*";                       // Blocking password
-   body.whenRegistered = new Date();
+   body.whenRegistered = Time();
 
    // This chain seems like it will always return the last test, not false if any fail
    // This can be seen by an attempt to post an admin with no AU
@@ -58,7 +59,7 @@ router.post('/', function(req, res) {
          cnn.query('SELECT * from Person where email = ?', body.email,
          function(err, result) {
             if (req._validator.check(!result.length, Tags.dupEmail)) {
-               body.termsAccepted = new Date();
+               body.termsAccepted = Time();
                cnn.query('INSERT INTO Person SET ?', body,
                function(err, result) {
                   if (err)
@@ -248,7 +249,7 @@ router.post('/:id/Atts', function(req, res) {
                })
                .then(function() {
                   req.body.ownerId = owner;
-                  req.body.startTime = new Date();
+                  req.body.startTime = Time();
 
                   // Score the attempt
                   var input = req.body.input.toLowerCase();

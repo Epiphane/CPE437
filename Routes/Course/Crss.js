@@ -1,6 +1,7 @@
 var Express = require('express');
 var connections = require('../Connections.js');
 var Tags = require('../Validator.js').Tags;
+var Time = require('../MockTime.js');
 var router = Express.Router({caseSensitive: true});
 router.baseURL = '/Crss';
 
@@ -114,7 +115,7 @@ router.post('/:name/Enrs', function(req, res) {
    connections.getConnection(res, function(cnn) {
       function doEnroll() {
          cnn.query('INSERT INTO Enrollment (prsId, courseName, whenEnrolled) VALUES (?, ?, ?)',
-            [req.body.prsId, req.params.name, new Date()], function(err, result) {
+            [req.body.prsId, req.params.name, Time()()], function(err, result) {
             if (err) {
                if (vld.check(err.code !== 'ER_DUP_ENTRY', Tags.dupName)) {
                   console.log(err);

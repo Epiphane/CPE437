@@ -86,6 +86,7 @@ angular.module('mainApp')
          delete: typicalDelete('Ssns')
       },
       Chls: {
+         get: typicalGet('Chls'),
          post: typicalPost('Chls'),
       },
       Crss: {
@@ -131,6 +132,14 @@ angular.module('mainApp')
                      return response;
                   });
             }
+         }
+      },
+      Time: {
+         get: function() {
+            return get('Time');
+         },
+         put: function(time) {
+            return put('Time', { time: time });
          }
       }
    }

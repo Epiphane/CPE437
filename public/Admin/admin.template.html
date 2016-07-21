@@ -1,0 +1,63 @@
+<div class="container-white row">
+   <div class="col-sm-7">
+      <h2>Time, Sir</h2>
+      <hr />
+
+      <div class="panel panel-default">
+         <div class="panel-heading">
+            <h2 class="panel-title">Current Server Time</h2>
+         </div>
+         <div class="panel-body">
+            {{ time | date:'medium' }}<br><br>
+            <form class="form-horizontal" ng-submit="saveTime()">
+               <fieldset class="form-group">
+                  <label for="email" class="control-label col-sm-4 col-xs-2">Seconds</label>
+                  <div class="col-sm-8 col-xs-10">
+                     <input class="form-control" type="number" ng-model="offsets.sec" />
+                  </div>
+               </fieldset>
+               <fieldset class="form-group">
+                  <label for="email" class="control-label col-sm-4 col-xs-2">Hours</label>
+                  <div class="col-sm-8 col-xs-10">
+                     <input class="form-control" type="number" ng-model="offsets.hr" />
+                  </div>
+               </fieldset>
+               <fieldset class="form-group">
+                  <label for="email" class="control-label col-sm-4 col-xs-2">Days</label>
+                  <div class="col-sm-8 col-xs-10">
+                     <input class="form-control" type="number" ng-model="offsets.day" />
+                  </div>
+               </fieldset>
+               <fieldset class="form-group">
+                  <label for="email" class="control-label col-sm-4 col-xs-2">Years</label>
+                  <div class="col-sm-8 col-xs-10">
+                     <input class="form-control" type="number" ng-model="offsets.year" />
+                  </div>
+               </fieldset>
+               <div class="col-xs-offset-2 col-sm-offset-4">
+                  <button class="btn btn-primary form-control" type="submit">Save</button>
+               </div>
+            </form>
+         </div>
+      </div>
+   </div>
+   <div class="col-sm-5">
+      <h2>Users</h2>
+      <hr />
+
+      <ul class="list-group">
+         <li class="list-group-item bg-{{ getAttColor(attempt) }}" ng-repeat="attempt in attempts">
+            <span class="badge pull-left">
+               {{ attempt.score }}
+            </span>
+            &nbsp;&nbsp;{{ attempt.input }}
+            <span class="pull-right" ng-show="isWithinDay(attempt, challengeName)">
+               <i class="fa fa-bolt"></i>
+            </span>
+         </li>
+         <li class="list-group-item" ng-show="isOpen(challengeName)">
+            <a href="#Chls/{{ challengeName }}" class="btn btn-success btn-small" type="button">Try again</a>
+         </li>
+      </ul>
+   </div>
+</div>

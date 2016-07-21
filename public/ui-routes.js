@@ -46,4 +46,9 @@ app.config(['$stateProvider', '$urlRouterProvider',
          templateUrl: 'Teacher/teacher.template.html',
          controller: 'teacherController'
       })
+      .state('admin', {
+         url: '/admin',
+         templateUrl: 'Admin/admin.template.html',
+         controller: 'adminController'
+      })
    }]);

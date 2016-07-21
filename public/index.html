@@ -18,6 +18,7 @@
 <script src="Login/loginController.js"></script>
 <script src="Challenges/chlController.js"></script>
 <script src="Courses/crsController.js"></script>
+<script src="Admin/adminController.js"></script>
 <script src="Teacher/teacherController.js"></script>
 <script src="Student/studentController.js"></script>
 <script src="Util/notifyDlg.js"></script>
@@ -40,6 +41,7 @@
                      <li ng-class="page === 'register' ? 'active' : ''" ng-hide="loggedUser"><a href="#register">Register</a></li>
                      <li ng-class="page === 'student' ? 'active' : ''" ng-show="loggedUser"><a href="#student">Student</a></li>
                      <li ng-class="page === 'teacher' ? 'active' : ''" ng-show="loggedUser && loggedUser.role > 0"><a href="#teacher">Teacher</a></li>
+                     <li ng-class="page === 'admin' ? 'active' : ''" ng-show="loggedUser && loggedUser.role === 2"><a href="#admin">Admin</a></li>
                      <li ng-show="loggedUser"><a href="#" ng-click='logout()'>Log Out</a></li>
                   </ul>
                </nav>
