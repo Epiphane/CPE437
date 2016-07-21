@@ -46,7 +46,7 @@ router.get('/:enrId', function(req, res) {
    });
 });
 
-router.put('/:id', function(req, res) {
+router.put('/:enrId', function(req, res) {
    var vld = req._validator;
    var admin = req.session && req.session.isAdmin();
    var enrolled = false;
