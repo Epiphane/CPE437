@@ -3,11 +3,13 @@ var connections = require('../Connections.js');
 var Tags = require('../Validator.js').Tags;
 var router = Express.Router({caseSensitive: true});
 var PromiseUtil = require('../PromiseUtil.js');
+var Time = require('../MockTime.js');
 
 router.baseURL = '/Prss';
 
 function handleError(res) {
   return function(error) {
+    console.log(error);
     var code = error.code || 400;
     delete error.code
 
@@ -19,6 +21,12 @@ function sendResult(res, status) {
   return function(result) {
     res.status(status || 200).json(result);
   }
+}
+
+function releaseConn(conn) {
+   return function() {
+      conn.release();
+   }
 }
 
 router.get('/', function(req, res) {
@@ -45,7 +53,7 @@ router.post('/', function(req, res) {
 
    if (admin && !body.password)
       body.password = "*";                       // Blocking password
-   body.whenRegistered = new Date();
+   body.whenRegistered = Time();
 
    // This chain seems like it will always return the last test, not false if any fail
    // This can be seen by an attempt to post an admin with no AU
@@ -57,7 +65,7 @@ router.post('/', function(req, res) {
          cnn.query('SELECT * from Person where email = ?', body.email,
          function(err, result) {
             if (req._validator.check(!result.length, Tags.dupEmail)) {
-               body.termsAccepted = new Date();
+               body.termsAccepted = Time();
                cnn.query('INSERT INTO Person SET ?', body,
                function(err, result) {
                   if (err)
@@ -177,6 +185,26 @@ router.delete('/:id', function(req, res) {
       });
 });
 
+router.get('/:id/Enrs', function(req, res) {
+   var query, qryParams;
+
+   req.validator.checkPrsOK(req.params.id)
+      .then(function() {
+         return connections.getConnectionP();
+      })
+      .then(function(conn) {
+
+         query = 'SELECT * from Enrollment where prsId = ?';
+         params = [req.params.id];
+
+         return conn.query(query, params)
+            .then(sendResult(res))
+            .catch(handleError(res))
+            .finally(releaseConn(conn));
+      })
+      .catch(handleError(res));
+});
+
 router.get('/:id/Crss', function(req, res) {
    var query, qryParams;
 
@@ -199,7 +227,7 @@ router.get('/:id/Atts', function(req, res) {
    var query, qryParams;
 
    if (req._validator.checkPrsOK(req.params.id))
-      query = 'SELECT * from Attempt where ownerId = ?';
+      query = 'SELECT * from Attempt where ownerId = ? ORDER BY startTime ASC';
       params = [req.params.id];
       if (req.query.challengeName) {
          query += ' and challengeName = ?';
@@ -229,6 +257,8 @@ router.post('/:id/Atts', function(req, res) {
      return connections.getConnectionP();
    })
    .then(function(conn) {
+      var chlName = req.body.challengeName;
+
       // Verify specified challenge exists
       return conn.query('SELECT * FROM Challenge WHERE name = ?', [chlName])
          .then(function(result) {
@@ -241,51 +271,89 @@ router.post('/:id/Atts', function(req, res) {
                                     'ownerId = ? AND challengeName = ?',
                                     [owner, chlName]);
                })
-               .then(function(result) {
-                  return vld.check(result.length < chl.attsAllowed, Tags.excessAtts);
-               })
-               .then(function() {
-                  req.body.ownerId = owner;
-                  req.body.startTime = new Date();
+               .then(function(existing) {
+                  return vld.check(existing.length < chl.attsAllowed, Tags.excessAtts)
+                     .then(function() {
+                        req.body.ownerId = owner;
+                        req.body.startTime = Time();
 
-                  // Score the attempt
-                  var input = req.body.input.toLowerCase();
-                  var answer = chl.answer.toLowerCase();
+                        // Score the attempt
+                        var input = req.body.input.toLowerCase();
+                        var answer = chl.answer.toLowerCase();
 
-                  req.body.score = 0;
-                  if (chl.type === 'number') {
-                     input = parseInt(input);
-                     answer = parseInt(answer);
-                     if (!Number.isNaN(input)) {
-                        req.body.score ++;
+                        req.body.score = 0;
+                        if (chl.type === 'number') {
+                           input = parseInt(input);
+                           answer = parseInt(answer);
+                           if (!Number.isNaN(input)) {
+                              req.body.score ++;
 
-                        if (Math.abs(input - answer) < 0.01) {
-                           req.body.score ++;
+                              if (Math.abs(input - answer) < 0.01) {
+                                 req.body.score ++;
+                              }
+                           }
                         }
-                     }
-                  }
-                  else if (chl.type === 'term') {
-                     answer = JSON.parse(answer);
-                     var exact =  answer.exact;
-                     var inexact = answer.inexact;
+                        else if (chl.type === 'term') {
+                           answer = JSON.parse(answer);
+                           var exact =  answer.exact;
+                           var inexact = answer.inexact;
 
-                     if (exact.indexOf(input) >= 0) {
-                        req.body.score = 2;
-                     }
-                     else if (inexact.indexOf(input) >= 0) {
-                        req.body.score = 1;
-                     }
-                  }
+                           if (exact.indexOf(input) >= 0) {
+                              req.body.score = 2;
+                           }
+                           else if (inexact.indexOf(input) >= 0) {
+                              req.body.score = 1;
+                           }
+                        }
 
-                  return conn.query('INSERT INTO Attempt SET ?', req.body);
-               })
-               .then(function(result) {
-                  res.location(router.baseURL + '/' + owner + '/Atts/'
-                     + result.insertId).end();
-               })
-               .catch(handleError(res))
-               .finally(function() {
-                  conn.release();
+                        return conn.query('SELECT * FROM Enrollment WHERE courseName = ? AND prsId = ?', [chl.courseName, owner]);
+                     })
+                     .then(function(enrollments) {
+
+                        return vld.check(enrollments.length, 'notEnrolled')
+                           .then(function() {
+                              var enr = enrollments[0];
+
+                              // How many credits to give?
+                              var creditsEarned = req.body.score;
+                              if (existing.length === 0) {
+                                 // First try!
+                                 creditsEarned ++;
+                              }
+                              else {
+                                 var max = 0;
+                                 existing.forEach(function(att) {
+                                    if (att.score > max) {
+                                       max = att.score;
+                                    }
+                                 });
+
+                                 creditsEarned -= max;
+
+                              }
+
+                              if (creditsEarned < 0) creditsEarned = 0;
+
+                              // Time bonus
+                              var closeTime = new Date(chl.openTime);
+                              closeTime.setDate(closeTime.getDate() + 1);
+                              if (creditsEarned && req.body.startTime < closeTime) {
+                                 creditsEarned += 2;
+                              }
+
+                              return conn.query('UPDATE Enrollment SET creditsEarned = creditsEarned + ' + creditsEarned + ' WHERE enrId = ?', [enr.enrId]);
+                           });
+                     })
+                     .then(function() {
+                        // Do the insertion
+                        return conn.query('INSERT INTO Attempt SET ?', req.body);
+                     })
+                     .then(function(result) {
+                        res.location(router.baseURL + '/' + owner + '/Atts/'
+                           + result.insertId).end();
+                     })
+                     .catch(handleError(res))
+                     .finally(releaseConn(conn));
                });
          });
    })

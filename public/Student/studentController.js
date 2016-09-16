@@ -2,55 +2,47 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
  function(scope, $state, API, confirm, login, $rootScope) {
    $rootScope.page = 'student';
 
-   scope.inProgressChallenges = [];
-   scope.challenges = [];
-   scope.mappedChallenges = {};
+   scope.store = {};
 
    if (!login.isLoggedIn()) {
       $state.go('home');
    }
 
-   scope.startChallenge = function(challengeName) {
-      API.Prss.Atts.post(scope.loggedUser.id, challengeName)
-         .then(scope.refreshAtts);
-   };
-
-   scope.refreshAtts = function() {
-      return API.Prss.Atts.get(scope.loggedUser.id)
+   scope.refreshEnrs = function() {
+      API.Prss.Enrs.get(scope.loggedUser.id)
          .then(function(response) {
-            scope.grouped = {};
+            scope.enrollments = response.data;
+            scope.store = {};
 
-            scope.inProgressChallenges = [];
+            scope.enrollments.forEach(function(enrollment) {
 
-            angular.forEach(response.data, function(attempt) {
-               var challengeName = attempt.challengeName;
+               API.Enrs.Itms.get(enrollment.enrId)
+                  .then(function(response) {
+                     enrollment.items = response.data;
 
-               scope.grouped[challengeName] = scope.grouped[challengeName] || [];
+                     API.Crss.Itms.get(enrollment.courseName)
+                        .then(function(response) {
+                           var data = response.data.filter(function(item) {
+                              for (var i in enrollment.items) {
+                                 if (enrollment.items[i].itemId === item.id) {
+                                    return false;
+                                 }
+                              }
 
-               scope.grouped[challengeName].unshift(attempt);
-               if (scope.inProgressChallenges.indexOf(challengeName) < 0)
-                  scope.inProgressChallenges.push(attempt.challengeName);
+                              return true;
+                           });
+
+                           scope.store[enrollment.courseName] = {
+                              enrollment: enrollment,
+                              items: data
+                           };
+                        });
+                  });
             });
          });
    };
 
-   scope.isWithinDay = function(attempt, challengeName) {
-      if (!scope.mappedChallenges[challengeName])
-         return false;
-
-      var closeTime = new Date(scope.mappedChallenges[challengeName].openTime)
-      closeTime.setDate(closeTime.getDate() + 1);
-
-      return closeTime >= attempt.startTime;
-   }
-
-   scope.notInProgress = function(challenge) {
-      return scope.inProgressChallenges.indexOf(challenge.name) < 0;
-   };
-
-   scope.isOpen = function(challengeName) {
-      return scope.mappedChallenges[challengeName] && scope.mappedChallenges[challengeName].attsAllowed > scope.grouped[challengeName].length;
-   };
+   scope.refreshEnrs();
 
    scope.getAttColor = function(att) {
       var styles = ['success', 'warning', 'danger'];
@@ -58,13 +50,9 @@ app.controller('studentController', ['$scope', '$state', 'api', 'confirm', 'logi
       return styles[2 - att.score] || "";
    };
 
-   API.Prss.Chls.get(scope.loggedUser.id).then(function(response) {
-      scope.challenges = response.data;
-
-      scope.challenges.forEach(function(challenge) {
-         scope.mappedChallenges[challenge.name] = challenge;
-      })
-   });
-
-   scope.refreshAtts();
+   scope.buyItem = function(enrId, itemId) {
+      API.Enrs.Itms.post(enrId, itemId).then(function() { 
+         scope.refreshEnrs();
+      });
+   };
 }])

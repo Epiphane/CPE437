@@ -1,13 +1,18 @@
 app.controller('crsController',
-['$scope', '$state', '$stateParams', 'api', 'confirm', 'login',
- function(scope, $state, $stateParams, API, confirm, login) {
+['$scope', '$state', '$stateParams', 'api', 'confirm', 'login', 'time',
+ function(scope, $state, $stateParams, API, confirm, login, time) {
    scope.courseName = $stateParams.courseName;
 
    scope.challenge = {
       courseName: scope.courseName,
       attsAllowed: 5,
-      openTime: new Date()
+      openTime: Now()
    };
+
+   // heheheh
+   setTimeout(function() {
+      scope.challenge.openTime = Now();
+   }, 500);
 
    if (!login.isLoggedIn()) {
       $state.go('home');
@@ -61,7 +66,7 @@ app.controller('crsController',
    scope.refreshItms();
 
    scope.isOpen = function(chl) {
-      return chl.openTime <= new Date();
+      return chl.openTime <= Now();
    }
 
    scope.addEnrollment = function() {

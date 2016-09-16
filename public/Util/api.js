@@ -78,6 +78,40 @@ angular.module('mainApp')
             get: function(prsId) {
                return get('Chls?prsId=' + prsId);
             }
+         },
+         Enrs: {
+            get: function(prsId, enrId) {
+               enrId = enrId || '';
+               return get('Prss/' + prsId + '/Enrs/' + enrId);
+            },
+         }
+      },
+      Enrs: {
+         get: typicalGet('Enrs'),
+         Chls: {
+            get: function(enrId) {
+               return get('Chls?enrId=' + enrId);
+            }
+         },
+         Atts: {
+            get: function(enrId, challengeName) {
+               return get('Enrs/' + enrId + '/Atts' + (challengeName ? '?challengeName=' + challengeName : ''))
+                  .then(function(response) {
+                     response.data = response.data.map(function(att) {
+                        att.startTime = new Date(att.startTime);
+                        return att;
+                     });
+                     return response;
+                  });
+            }
+         },
+         Itms: {
+            get: function(enrId) {
+               return get('Enrs/' + enrId + '/Itms');
+            },
+            post: function(enrId, itemId) {
+               return post('Enrs/' + enrId + '/Itms', { itemId: itemId });
+            }
          }
       },
       Ssns: {
@@ -86,6 +120,7 @@ angular.module('mainApp')
          delete: typicalDelete('Ssns')
       },
       Chls: {
+         get: typicalGet('Chls'),
          post: typicalPost('Chls'),
       },
       Crss: {
@@ -96,6 +131,9 @@ angular.module('mainApp')
             get: function(courseName, enrId) {
                enrId = enrId || '';
                return get('Crss/' + courseName + '/Enrs/' + enrId + '?full=true');
+            },
+            find: function(courseName, prsId) {
+               return get('Crss/' + courseName + '/Enrs?prsId=' + prsId);
             },
             delete: function(courseName, enrId) {
                return del('Crss/' + courseName + '/Enrs/' + enrId);
@@ -131,6 +169,14 @@ angular.module('mainApp')
                      return response;
                   });
             }
+         }
+      },
+      Time: {
+         get: function() {
+            return get('Time');
+         },
+         put: function(time) {
+            return put('Time', { time: time });
          }
       }
    }

@@ -1,6 +1,7 @@
 var Express = require('express');
 var connections = require('../Connections.js');
 var Tags = require('../Validator.js').Tags;
+var Time = require('../MockTime.js');
 var router = Express.Router({caseSensitive: true});
 router.baseURL = '/Crss';
 
@@ -114,7 +115,7 @@ router.post('/:name/Enrs', function(req, res) {
    connections.getConnection(res, function(cnn) {
       function doEnroll() {
          cnn.query('INSERT INTO Enrollment (prsId, courseName, whenEnrolled) VALUES (?, ?, ?)',
-            [req.body.prsId, req.params.name, new Date()], function(err, result) {
+            [req.body.prsId, req.params.name, Time()], function(err, result) {
             if (err) {
                if (vld.check(err.code !== 'ER_DUP_ENTRY', Tags.dupName)) {
                   console.log(err);
@@ -167,7 +168,12 @@ router.get('/:name/Enrs', function(req, res) {
                queryArr[0] += ', lastName, firstName, email';
                queryArr[1] += ' INNER JOIN Person p ON p.id = prsId'
             }
-            cnn.query(queryArr.join(' '), [req.params.name], function(err, result) {
+            var params = [req.params.name];
+            if (req.query.prsId) {
+               queryArr.push('AND prsId = ?');
+               params.push(req.query.prsId);
+            }
+            cnn.query(queryArr.join(' '), params, function(err, result) {
                res.json(result);
                cnn.release();
             });
@@ -178,11 +184,7 @@ router.get('/:name/Enrs', function(req, res) {
          }
          else {
             cnn.query('SELECT ownerId FROM Course WHERE name = ?', [req.params.name], function(err, result) {
-               if (vld.check(result && result[0].ownerId === prs.id, Tags.noPermission)) {
-                  getResult();
-               }
-               else
-                  cnn.release();
+               getResult();
             });
          }
       });

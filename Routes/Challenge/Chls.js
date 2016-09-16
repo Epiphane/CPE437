@@ -1,6 +1,7 @@
 var Express = require('express');
 var connections = require('../Connections.js');
 var Tags = require('../Validator.js').Tags;
+var Time = require('../MockTime.js');
 var router = Express.Router({caseSensitive: true});
 router.baseURL = '/Chls';
 
@@ -27,7 +28,7 @@ function releaseConn(conn) {
 
 // Get only OPEN challenges
 router.get('/', function(req, res) {
-   req.validator.check(!!req.query.prsId, 'noPrsId')
+   req.validator.check(!!req.query.prsId || !!req.query.enrId, 'no prsId or enrId')
       .then(function() {
          return connections.getConnectionP();
       })
@@ -35,9 +36,20 @@ router.get('/', function(req, res) {
          var query = [
             'SELECT name, description, attsAllowed, openTime, prsId from Challenge chl',
             'LEFT JOIN Enrollment enr ON enr.courseName = chl.courseName',
-            'WHERE openTime <= NOW() AND prsId = ?'
+            'WHERE openTime <= ?'
          ];
-         var params = [req.query.prsId];
+         var params = [Time()];
+
+         if (req.query.enrId) {
+            query.push('AND enrId = ?');
+            params.push(req.query.enrId);
+         }
+         else {
+            query.push('AND prsId = ?');
+            params.push(req.query.prsId);
+         }
+
+         console.log(query.join(' '), params);
 
          conn.query(query.join(' '), params)
             .then(sendResult(res))
@@ -73,7 +85,7 @@ router.post('/', function(req, res) {
 
 router.get('/:name', function(req, res) {
    connections.getConnection(res, function(cnn) {
-      cnn.query('SELECT name, description, attsAllowed, openTime from Challenge where name = ?', req.params.name, function(err, result) {
+      cnn.query('SELECT name, description, attsAllowed, openTime, courseName from Challenge where name = ?', req.params.name, function(err, result) {
          if (result.length === 1) {
             res.json(result[0]);
          }

@@ -6,7 +6,8 @@ var bodyParser = require('body-parser');
 var Session = require('./Routes/Session.js');
 var Validator = require('./Routes/Validator.js');
 var _Validator = require('./Routes/_Validator.js');
-var cnnPool = require('./Routes/Connections.js');
+var connections = require('./Routes/Connections.js');
+var Time = require('./Routes/MockTime.js');
 
 var async = require('async');
 
@@ -23,6 +24,13 @@ app.use(cookieParser());
 
 // Set up Session on req if available
 app.use(Session.router);
+
+app.get('/Time', function(req, res) {
+   res.json({
+      time: Time(),
+      offset: Time.offset
+   });
+});
 
 app.use(function(req, res, next) {
    req.validator = new Validator(req, res);
@@ -43,11 +51,29 @@ app.use('/Ssns', require('./Routes/Account/Ssns'));
 app.use('/Chls', require('./Routes/Challenge/Chls'));
 app.use('/Atts', require('./Routes/Challenge/Atts'));
 app.use('/Crss', require('./Routes/Course/Crss'));
+app.use('/Enrs', require('./Routes/Course/Enrs'));
 
+app.put('/Time', function(req, res) {
+   req.validator.checkAdmin()
+      .then(function() {
+         return req.validator.hasFields(req.body, ['time']);
+      })
+      .then(function() {
+         Time.offset = (new Date(req.body.time)).getTime() - (new Date()).getTime();
+         res.status(200).end();
+      })
+      .catch(function(err) {
+         console.log(error);
+         var code = error.code || 400;
+         delete error.code
+
+         res.status(code).json(error);
+      })
+});
 
 app.delete('/DB', function(req, res) {
 
-   cnnPool.getConnection(res, function(cnn) {
+   connections.getConnection(res, function(cnn) {
       async.series([
          function(callback){
             cnn.query('delete from Attempt', callback);
@@ -107,40 +133,12 @@ app.delete('/DB', function(req, res) {
    });
 });
 
-/* Testing Material */
-app.get('/test', function(req, res) {
-   console.log("In test route");
-   res.status(200).end();
-});
-
-var sbCounter = 0;
-
-app.get('/slowboat', function(req, res, next) {
-   console.log("In slowboat route");
-   setTimeout(function(){
-      console.log("Slowboat hit done");
-      res.status(200).json(sbCounter++);
-   }, 5000);
-   console.log("Done with route");
-});
-
-// Messing around with a simple route and with mysql
-app.get('/data', function (req, res, next) {
-   cnnPool.getConnection(res, function(cnn) {
-      cnn.query('Select * from Person', function (err, data) {
-         //cnn.release();
-         res.status(200).json(data);
-      });
-   });
-   console.log('Done setting up /data query');
-});
-
 app.use(function(err, req, res, next) {
    console.error(err.stack);
    res.status(500).send('error', {error: err});
 });
 
-app.listen(process.env.OPENSHIFT_NODEJS_PORT || process.env.NODE_PORT || 3000, 
+app.listen(process.env.OPENSHIFT_NODEJS_PORT || process.env.NODE_PORT || 3000,
            process.env.OPENSHIFT_NODEJS_IP   || process.env.NODE_IP   || 'localhost',
 function () {
    console.log('App Listening on port 3000');

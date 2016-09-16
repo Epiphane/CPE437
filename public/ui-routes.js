@@ -26,6 +26,11 @@ app.config(['$stateProvider', '$urlRouterProvider',
          templateUrl: 'Courses/crss.template.html',
          controller: 'crssController'
       })
+      .state('enr', {
+         url: '/Enrs/{enrId}',
+         templateUrl: 'Enrollments/enr.template.html',
+         controller: 'enrController'
+      })
       .state('crs', {
          url: '/Crss/{courseName}',
          templateUrl: 'Courses/crs.template.html',
@@ -45,5 +50,10 @@ app.config(['$stateProvider', '$urlRouterProvider',
          url: '/teacher',
          templateUrl: 'Teacher/teacher.template.html',
          controller: 'teacherController'
+      })
+      .state('admin', {
+         url: '/admin',
+         templateUrl: 'Admin/admin.template.html',
+         controller: 'adminController'
       })
    }]);

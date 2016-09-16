@@ -5,13 +5,12 @@
 
       <div class="panel panel-default" ng-repeat="course in courses">
          <div class="panel-heading">
-            <button class="btn btn-info pull-right" type="button" ng-click="viewCourse(course.name)">View</button>
-            <h3 class="panel-title">{{ course.name }}</h3>
+            <h2 class="panel-title">{{ course.name }}</h2>
             <div class="clearfix"></div>
          </div>
-         <div class="panel-body">
-            Students here? Or Challenges?
-            <button class="btn btn-warning pull-right" type="button" ng-click="deleteCourse(course.name)">Delete</button>
+         <div class="panel-body text-center">
+            <button class="btn btn-info" type="button" ng-click="viewCourse(course.name)">View</button>
+            <button class="btn btn-warning" type="button" ng-click="deleteCourse(course.name)">Delete</button>
          </div>
       </div>
    </div>
