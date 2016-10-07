@@ -1,0 +1,16 @@
+{
+    "facebook": {
+        "clientID": "1773567892895697",
+        "clientSecret": "c5c8f27bb5a433b468124ed474388856",
+        "callbackURL": "http://localhost:3000/Ssns/auth/facebook/callback"
+    },
+    "twitter": {
+        "clientID": "<CLIENT ID>",
+        "clientSecret": "<CLIENT SECRET>",
+        "callbackURL": "http://localhost:3000/auth/twitter/callback"
+    },
+    "google": {
+        "realm": "http://localhost:3000/",
+        "callbackURL": "http://localhost:3000/auth/google/callback"
+    }
+}

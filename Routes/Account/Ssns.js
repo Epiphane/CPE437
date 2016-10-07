@@ -3,6 +3,7 @@ var connections = require('../Connections.js');
 var Tags = require('../Validator.js').Tags;
 var ssnUtil = require('../Session.js');
 var router = Express.Router({caseSensitive: true});
+var passport = require('')
 
 router.baseURL = '/Ssns';
 
@@ -18,6 +19,12 @@ router.get('/', function(req, res) {
       res.status(200).json(body);
    }
 });
+
+router.get('/auth/facebook', passport.authenticate('facebook'));
+
+router.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { successRedirect: '/',
+                                      failureRedirect: '/login' }));
 
 router.post('/', function(req, res) {
    var cookie;

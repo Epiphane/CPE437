@@ -2,6 +2,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 
+var passport = require('./Database/passport');
+
 var bodyParser = require('body-parser');
 var Session = require('./Routes/Session.js');
 var Validator = require('./Routes/Validator.js');
@@ -38,11 +40,11 @@ app.use(function(req, res, next) {
 
    console.log(req.method, req.path);
 
-   if (req.session || (req.method === 'POST' &&
-    (req.path === '/Prss' || req.path === '/Ssns')))
+   // if (req.session || (req.method === 'POST' &&
+   //  (req.path === '/Prss' || req.path === '/Ssns')))
       next();
-   else
-      res.status(401).json([{tag: Validator.Tags.noLogin}]);
+   // else
+   //    res.status(401).json([{tag: Validator.Tags.noLogin}]);
 
 });
 
