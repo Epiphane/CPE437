@@ -49,8 +49,8 @@ app.use(function(req, res, next) {
 });
 
 app.use('/Prss', require('./Routes/Account/Prss'));
-// app.use('/Ssns', require('./Routes/Account/Ssns'));
-require('./Routes/Account/Ssns')(app, passport);
+app.use('/Ssns', require('./Routes/Account/Ssns'));
+// require('./Routes/Account/Ssns')(app, passport);
 app.use('/Chls', require('./Routes/Challenge/Chls'));
 app.use('/Atts', require('./Routes/Challenge/Atts'));
 app.use('/Crss', require('./Routes/Course/Crss'));
