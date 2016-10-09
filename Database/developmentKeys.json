@@ -1,7 +1,7 @@
 {
     "facebook": {
         "clientID": "1773567892895697",
-        "clientSecret": "c5c8f27bb5a433b468124ed474388856",
+        "clientSecret": "<CLIENT SECRET HERE>",
         "callbackURL": "http://localhost:3000/Ssns/auth/facebook/callback"
     },
     "twitter": {
